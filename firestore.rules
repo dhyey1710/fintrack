@@ -1,0 +1,39 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Transactions ────────────────────────────────────
+    // Each transaction document has a "userId" field.
+    // A user can only read/write/delete their OWN documents.
+    match /transactions/{transactionId} {
+
+      // Allow read if the document's userId matches the signed-in user
+      allow read: if request.auth != null
+                  && resource.data.userId == request.auth.uid;
+
+      // Allow create if:
+      //  1. User is signed in
+      //  2. The new document sets userId to the authenticated user's UID
+      //  3. Amount must be a positive number
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.amount is number
+                    && request.resource.data.amount > 0;
+
+      // Allow delete if the document belongs to the signed-in user
+      allow delete: if request.auth != null
+                    && resource.data.userId == request.auth.uid;
+
+      // Allow update (edit) if document belongs to the signed-in user
+      allow update: if request.auth != null
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Deny all other access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
