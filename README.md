@@ -6,9 +6,10 @@ FinTrack is a comprehensive, real-time personal finance application built to hel
 
 ## 🚀 Features
 
+*   **✨ Hero Feature: AI-Enabled Smart Quick Add:** Type a natural sentence (e.g. "spent 50 on auto yesterday") and our Gemini AI integration automatically extracts the amount, categorizes the expense, and structures the date for instant saving. 
 *   **Real-time Dashboard:** Instantly view balance, income, expenses, and savings rate.
 *   **Visual Analytics:** Interactive pie charts for spending distribution and area charts for daily spending trends.
-*   **Transaction Management:** Add, edit, and delete income/expense records with intelligent categorization.
+*   **Transaction Management:** Add, edit, and delete income/expense records natively or via AI.
 *   **Secure Authentication:** Powered by Firebase Authentication (Email/Password) with secure route protection.
 *   **Cloud Data Sync:** Built on Firebase Firestore for instant, real-time data synchronization across devices.
 *   **Dark/Light Mode:** First-class support for system-based or manual theme toggling.

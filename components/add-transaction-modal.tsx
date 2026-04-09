@@ -63,6 +63,10 @@ import { cn }        from "@/lib/utils"
 
 interface AddTransactionModalProps {
   onAdd?: (transaction: Omit<Transaction, "id">) => Promise<void> | void
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  initialData?: Partial<Transaction>
+  trigger?: React.ReactNode // Allow custom trigger button
 }
 
 // ── Shared form content ───────────────────────────────────
@@ -212,8 +216,24 @@ function TransactionForm({
 }
 
 // ── Main component ────────────────────────────────────────
-export function AddTransactionModal({ onAdd }: AddTransactionModalProps) {
-  const [open,    setOpen]    = useState(false)
+export function AddTransactionModal({ 
+  onAdd, 
+  open: controlledOpen, 
+  onOpenChange: setControlledOpen, 
+  initialData,
+  trigger 
+}: AddTransactionModalProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : internalOpen
+  
+  const setOpen = (value: boolean) => {
+    if (!isControlled) setInternalOpen(value)
+    setControlledOpen?.(value)
+    if (!value) resetForm()
+  }
+
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState("")
   const isMobile = useIsMobile()
@@ -224,6 +244,19 @@ export function AddTransactionModal({ onAdd }: AddTransactionModalProps) {
   const [category,    setCategory]    = useState("")
   const [date,        setDate]        = useState<Date>(new Date())
   const [description, setDescription] = useState("")
+
+  // Sync initialData when modal opens
+  import("react").then(() => {}) // Hack removed. We use React.useEffect below.
+  const React = require("react")
+  React.useEffect(() => {
+    if (open && initialData) {
+      setType(initialData.type || "expense")
+      setAmount(initialData.amount ? String(initialData.amount) : "")
+      setCategory(initialData.category || "")
+      setDate(initialData.date ? new Date(initialData.date) : new Date())
+      setDescription(initialData.description || "")
+    }
+  }, [open, initialData])
 
   const resetForm = () => {
     setType("expense")
@@ -390,7 +423,7 @@ export function AddTransactionModal({ onAdd }: AddTransactionModalProps) {
     </Button>
   )
 
-  const TriggerButton = (
+  const TriggerButton = trigger || (
     <Button className="gap-2 touch-manipulation">
       <Plus className="size-4" />
       <span>Add Transaction</span>

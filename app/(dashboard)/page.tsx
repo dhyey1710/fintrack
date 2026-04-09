@@ -14,6 +14,7 @@
 
 import { AuthGuard }              from "@/components/auth-guard"
 import { AddTransactionModal }    from "@/components/add-transaction-modal"
+import { SmartQuickAdd }          from "@/components/dashboard/smart-quick-add"
 import { RecentTransactions }     from "@/components/dashboard/recent-transactions"
 import { SpendingChart }          from "@/components/dashboard/spending-chart"
 import { SummaryCards }           from "@/components/dashboard/summary-cards"
@@ -84,9 +85,14 @@ function DashboardContent() {
           </h1>
           <p className="text-muted-foreground">{currentDate}</p>
         </div>
-        {/* AddTransactionModal now writes to Firestore */}
-        <AddTransactionModal onAdd={handleAddTransaction} />
+        {/* We keep AddTransactionModal on desktop for manual fast-add */}
+        <div className="hidden sm:block">
+          <AddTransactionModal onAdd={handleAddTransaction} />
+        </div>
       </div>
+
+      {/* AI Smart Quick Add */}
+      <SmartQuickAdd onAdd={handleAddTransaction} />
 
       {/* Error banner */}
       {error && (
