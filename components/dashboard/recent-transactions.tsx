@@ -45,7 +45,7 @@ export function RecentTransactions({
   const recent = transactions.slice(0, 6)
 
   const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value)
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(value)
 
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString("en-US", {

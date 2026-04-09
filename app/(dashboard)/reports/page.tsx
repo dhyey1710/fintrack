@@ -100,7 +100,7 @@ function ReportsContent() {
   }, [transactions])
 
   const formatCurrency = (v: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(v)
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 0 }).format(v)
 
   const chartConfig: ChartConfig = {
     income:   { label: "Income",   color: "#10b981" },
@@ -186,7 +186,7 @@ function ReportsContent() {
                   tickLine={false}
                   axisLine={false}
                   tickMargin={8}
-                  tickFormatter={(v) => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`}
+                  tickFormatter={(v) => `₹${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`}
                 />
                 <ChartTooltip
                   content={

@@ -75,7 +75,7 @@ export function TrendChart({ data }: TrendChartProps) {
               axisLine={false}
               tickMargin={8}
               tick={{ fontSize: 12 }}
-              tickFormatter={(value) => `$${value}`}
+              tickFormatter={(value) => `₹${value}`}
             />
             <ChartTooltip
               cursor={false}
@@ -85,7 +85,7 @@ export function TrendChart({ data }: TrendChartProps) {
                     <div className="flex items-center justify-between gap-4">
                       <span>Spending</span>
                       <span className="font-mono font-medium">
-                        ${Number(value).toFixed(2)}
+                        ₹{Number(value).toFixed(2)}
                       </span>
                     </div>
                   )}

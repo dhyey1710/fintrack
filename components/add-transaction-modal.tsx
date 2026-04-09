@@ -295,7 +295,7 @@ export function AddTransactionModal({ onAdd }: AddTransactionModalProps) {
       <div className="grid gap-2">
         <Label htmlFor={`${formId}-amount`}>Amount</Label>
         <div className="relative">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
           <Input
             id={`${formId}-amount`}
             type="number"

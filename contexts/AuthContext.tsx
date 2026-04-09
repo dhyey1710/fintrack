@@ -70,9 +70,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user)
-      setLoading(false) // We now know the auth state — safe to render
+      setLoading(false)
+
+      // Set/clear a simple presence cookie so the Edge middleware
+      // can detect auth state without a full token verification.
+      if (user) {
+        // SameSite=Lax prevents CSRF; no HttpOnly since JS must write it.
+        document.cookie = "fintrack-auth=1; path=/; SameSite=Lax; max-age=86400"
+      } else {
+        // Clear the cookie by setting max-age=0
+        document.cookie = "fintrack-auth=; path=/; SameSite=Lax; max-age=0"
+      }
     })
-    return unsubscribe // Clean up the listener on unmount
+    return unsubscribe
   }, [])
 
   const value: AuthContextType = { currentUser, loading, signup, login, logout }

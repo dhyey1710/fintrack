@@ -54,7 +54,7 @@ export function SpendingChart({ data }: SpendingChartProps) {
                     <div className="flex items-center justify-between gap-4">
                       <span>{name}</span>
                       <span className="font-mono font-medium">
-                        ${Number(value).toFixed(2)}
+                        ₹{Number(value).toFixed(2)}
                       </span>
                     </div>
                   )}

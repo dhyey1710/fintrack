@@ -100,7 +100,7 @@ function TransactionsContent() {
   }
 
   const formatCurrency = (v: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(v)
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(v)
 
   const formatDate = (ds: string) =>
     new Date(ds).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
