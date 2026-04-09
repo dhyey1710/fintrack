@@ -1,6 +1,9 @@
 import { AppSidebar } from "@/components/app-sidebar"
-import { TopNavbar } from "@/components/top-navbar"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { TopNavbar }   from "@/components/top-navbar"
+import {
+  SidebarProvider,
+  SidebarInset,
+} from "@/components/ui/sidebar"
 
 export default function DashboardLayout({
   children,
@@ -10,9 +13,13 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      {/* SidebarInset fills remaining space and handles sidebar offset */}
+      <SidebarInset className="flex min-h-0 flex-col">
         <TopNavbar />
-        <main className="flex-1 overflow-auto">{children}</main>
+        {/* main must scroll independently — overflow-y-auto with flex-1 */}
+        <main className="flex-1 overflow-y-auto pb-safe">
+          {children}
+        </main>
       </SidebarInset>
     </SidebarProvider>
   )

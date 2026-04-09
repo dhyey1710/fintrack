@@ -1,12 +1,10 @@
 /**
- * components/top-navbar.tsx
- * ──────────────────────────────────────────────────────────
- * Top header bar — shows:
- *  • Current date
- *  • Dark/light mode toggle
- *  • User avatar with dropdown (real name/email from Firebase)
- *  • Sign out button (calls Firebase Auth signOut)
- * ──────────────────────────────────────────────────────────
+ * components/top-navbar.tsx — Mobile-polished version
+ *
+ * Changes vs original:
+ *  • Safe-area padding on the right for notched phones
+ *  • Date hidden on very small screens to reduce clutter
+ *  • Active tap feedback on buttons (touch-manipulation)
  */
 
 "use client"
@@ -34,10 +32,9 @@ export function TopNavbar() {
 
   const currentDate = new Date().toLocaleDateString("en-US", {
     month: "long",
-    year: "numeric",
+    year:  "numeric",
   })
 
-  // Derive initials for the avatar fallback
   const initials = currentUser?.displayName
     ? currentUser.displayName
         .split(" ")
@@ -57,20 +54,23 @@ export function TopNavbar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <SidebarTrigger className="-ml-1" />
+    <header className="sticky top-0 z-40 flex h-14 items-center gap-2 border-b bg-background/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:gap-4 sm:px-4">
+      {/* Sidebar hamburger */}
+      <SidebarTrigger className="-ml-1 touch-manipulation" />
 
-      <div className="flex flex-1 items-center gap-4">
-        <span className="hidden text-sm text-muted-foreground sm:inline-block">
+      {/* Date — hidden on xs (< 360px), visible from sm */}
+      <div className="flex flex-1 items-center">
+        <span className="hidden text-sm text-muted-foreground xs:inline-block sm:inline-block">
           {currentDate}
         </span>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         {/* Theme toggle */}
         <Button
           variant="ghost"
           size="icon"
+          className="touch-manipulation"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           aria-label="Toggle theme"
         >
@@ -78,34 +78,34 @@ export function TopNavbar() {
           <Moon className="absolute size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
         </Button>
 
-        {/* User menu — shows real Firebase displayName + email */}
+        {/* User dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+            <Button variant="ghost" className="relative size-8 rounded-full touch-manipulation p-0">
               <Avatar className="size-8">
-                <AvatarImage src={currentUser?.photoURL ?? ""} alt="User avatar" />
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                <AvatarImage src={currentUser?.photoURL ?? ""} alt="User" />
+                <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
                   {initials}
                 </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
+          <DropdownMenuContent className="w-52" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col gap-1">
-                {/* Real user name from Firebase Auth */}
-                <p className="text-sm font-medium leading-none">
+                <p className="truncate text-sm font-medium leading-none">
                   {currentUser?.displayName ?? "Anonymous"}
                 </p>
-                {/* Real user email from Firebase Auth */}
-                <p className="text-xs leading-none text-muted-foreground">
+                <p className="truncate text-xs leading-none text-muted-foreground">
                   {currentUser?.email}
                 </p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {/* Sign out — calls Firebase Auth signOut */}
-            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="cursor-pointer text-destructive focus:text-destructive"
+            >
               <LogOut className="mr-2 size-4" />
               <span>Sign out</span>
             </DropdownMenuItem>

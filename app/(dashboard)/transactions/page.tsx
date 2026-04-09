@@ -1,8 +1,10 @@
 /**
- * app/(dashboard)/transactions/page.tsx  — Transactions
+ * app/(dashboard)/transactions/page.tsx
  * ──────────────────────────────────────────────────────────
- * Full transaction list with search + filters.
- * Data comes from Firestore in real-time via useTransactions().
+ * Mobile-first full transaction list:
+ *  • Mobile: stacked card list (no horizontal scroll)
+ *  • Desktop: full table with filters
+ *  • Floating "+" FAB on mobile for easy access
  * ──────────────────────────────────────────────────────────
  */
 
@@ -10,7 +12,7 @@
 
 import { useState, useMemo } from "react"
 import { format }            from "date-fns"
-import { CalendarIcon, Edit2, Loader2, Search, Trash2, X } from "lucide-react"
+import { CalendarIcon, Loader2, Search, Trash2, X } from "lucide-react"
 import { AuthGuard }            from "@/components/auth-guard"
 import { AddTransactionModal }  from "@/components/add-transaction-modal"
 import { Badge }                from "@/components/ui/badge"
@@ -49,7 +51,7 @@ import { useTransactions }      from "@/hooks/useTransactions"
 import { categories, type Transaction } from "@/lib/data"
 import { cn }                   from "@/lib/utils"
 
-// ── Inner content ─────────────────────────────────────────
+// ─── Inner content ────────────────────────────────────────
 function TransactionsContent() {
   const { transactions, loading, error, addTransaction, deleteTransaction } =
     useTransactions()
@@ -62,21 +64,17 @@ function TransactionsContent() {
     to:   Date | undefined
   }>({ from: undefined, to: undefined })
 
-  // ── Filtering logic ──────────────────────────────────
   const filteredTransactions = useMemo(() => {
     return transactions.filter((t) => {
       const matchesSearch =
         t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         t.category.toLowerCase().includes(searchQuery.toLowerCase())
-
       const matchesType     = typeFilter === "all" || t.type === typeFilter
       const matchesCategory = categoryFilter === "all" || t.category === categoryFilter
-
       const tDate = new Date(t.date)
       const matchesDate =
         (!dateRange.from || tDate >= dateRange.from) &&
         (!dateRange.to   || tDate <= dateRange.to)
-
       return matchesSearch && matchesType && matchesCategory && matchesDate
     })
   }, [transactions, searchQuery, typeFilter, categoryFilter, dateRange])
@@ -85,24 +83,13 @@ function TransactionsContent() {
     searchQuery || typeFilter !== "all" || categoryFilter !== "all" ||
     dateRange.from || dateRange.to
 
-  // ── Handlers ─────────────────────────────────────────
   const handleAddTransaction = async (newTxn: Omit<Transaction, "id">) => {
-    try {
-      // TODO: writes to Firestore
-      await addTransaction(newTxn)
-    } catch (err) {
-      console.error("Transactions – add failed:", err)
-    }
+    try { await addTransaction(newTxn) } catch (e) { console.error(e) }
   }
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this transaction?")) return
-    try {
-      // TODO: deletes from Firestore
-      await deleteTransaction(id)
-    } catch (err) {
-      console.error("Transactions – delete failed:", err)
-    }
+    try { await deleteTransaction(id) } catch (e) { console.error(e) }
   }
 
   const clearFilters = () => {
@@ -112,7 +99,6 @@ function TransactionsContent() {
     setDateRange({ from: undefined, to: undefined })
   }
 
-  // ── Formatters ────────────────────────────────────────
   const formatCurrency = (v: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(v)
 
@@ -122,169 +108,222 @@ function TransactionsContent() {
   const getCategoryColor = (name: string) =>
     categories.find((c) => c.name === name)?.color ?? "#6b7280"
 
-  // ── Render ────────────────────────────────────────────
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
+    <div className="relative flex flex-col gap-4 p-4 pb-24 md:gap-6 md:p-6 md:pb-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Transactions</h1>
-          <p className="text-muted-foreground">
-            {loading
-              ? "Loading…"
-              : `${transactions.length} total transaction${transactions.length !== 1 ? "s" : ""}`}
+          <p className="text-sm text-muted-foreground">
+            {loading ? "Loading…" : `${transactions.length} total`}
           </p>
         </div>
-        <AddTransactionModal onAdd={handleAddTransaction} />
+        {/* Button hidden on mobile (replaced by FAB below) */}
+        <div className="hidden sm:block">
+          <AddTransactionModal onAdd={handleAddTransaction} />
+        </div>
       </div>
 
-      {/* Error banner */}
       {error && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
           {error}
         </div>
       )}
 
-      {/* Filters */}
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-base">Filters</CardTitle>
-          <CardDescription>Filter by type, category, date range, or search</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-4">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search transactions…"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
+      {/* ── Search bar (always visible on mobile) ── */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search transactions…"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9"
+        />
+      </div>
 
-              {/* Type toggle */}
-              <ToggleGroup
-                type="single"
-                value={typeFilter}
-                onValueChange={(v) => v && setTypeFilter(v)}
-                className="justify-start"
-              >
-                <ToggleGroupItem value="all"     className="flex-1">All</ToggleGroupItem>
-                <ToggleGroupItem value="income"  className="flex-1 data-[state=on]:bg-emerald-600 data-[state=on]:text-white">Income</ToggleGroupItem>
-                <ToggleGroupItem value="expense" className="flex-1 data-[state=on]:bg-destructive data-[state=on]:text-destructive-foreground">Expenses</ToggleGroupItem>
-              </ToggleGroup>
+      {/* ── Filter row (collapsible-ish on mobile) ── */}
+      <div className="flex flex-wrap gap-2">
+        {/* Type toggle */}
+        <ToggleGroup
+          type="single"
+          value={typeFilter}
+          onValueChange={(v) => v && setTypeFilter(v)}
+          className="h-9"
+        >
+          <ToggleGroupItem value="all"     className="h-9 px-3 text-xs">All</ToggleGroupItem>
+          <ToggleGroupItem value="income"  className="h-9 px-3 text-xs data-[state=on]:bg-emerald-600 data-[state=on]:text-white">Income</ToggleGroupItem>
+          <ToggleGroupItem value="expense" className="h-9 px-3 text-xs data-[state=on]:bg-destructive data-[state=on]:text-destructive-foreground">Expense</ToggleGroupItem>
+        </ToggleGroup>
 
-              {/* Category */}
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.name} value={cat.name}>
-                      <div className="flex items-center gap-2">
-                        <div className="size-2 rounded-full" style={{ backgroundColor: cat.color }} />
-                        {cat.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        {/* Category */}
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="h-9 w-auto min-w-[130px] text-xs">
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {categories.map((cat) => (
+              <SelectItem key={cat.name} value={cat.name}>
+                <div className="flex items-center gap-2">
+                  <div className="size-2 rounded-full" style={{ backgroundColor: cat.color }} />
+                  {cat.name}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-              {/* Date range */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("justify-start text-left font-normal", !dateRange.from && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 size-4" />
-                    {dateRange.from
-                      ? dateRange.to
-                        ? <>{format(dateRange.from, "LLL dd")} – {format(dateRange.to, "LLL dd")}</>
-                        : format(dateRange.from, "LLL dd, y")
-                      : "Date range"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="range"
-                    selected={dateRange}
-                    onSelect={(range) => setDateRange({ from: range?.from, to: range?.to })}
-                    numberOfMonths={2}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+        {/* Date range */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn("h-9 text-xs", !dateRange.from && "text-muted-foreground")}
+            >
+              <CalendarIcon className="mr-1.5 size-3.5" />
+              {dateRange.from
+                ? dateRange.to
+                  ? `${format(dateRange.from, "MMM d")}–${format(dateRange.to, "MMM d")}`
+                  : format(dateRange.from, "MMM d, y")
+                : "Date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="range"
+              selected={dateRange}
+              onSelect={(r) => setDateRange({ from: r?.from, to: r?.to })}
+              numberOfMonths={1}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
 
-            {hasActiveFilters && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  {filteredTransactions.length} result{filteredTransactions.length !== 1 ? "s" : ""}
-                </span>
-                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 gap-1">
-                  <X className="size-3" /> Clear filters
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 gap-1 text-xs">
+            <X className="size-3" /> Clear
+          </Button>
+        )}
+      </div>
 
-      {/* Table */}
-      <Card>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="size-8 animate-spin text-primary" />
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTransactions.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                      No transactions found.{" "}
-                      {transactions.length === 0 && "Add your first transaction to get started!"}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredTransactions.map((t) => (
-                    <TableRow key={t.id}>
-                      <TableCell className="text-muted-foreground">{formatDate(t.date)}</TableCell>
-                      <TableCell className="font-medium">{t.description}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="secondary"
-                          style={{
-                            backgroundColor: `${getCategoryColor(t.category)}20`,
-                            color:            getCategoryColor(t.category),
-                            borderColor:      getCategoryColor(t.category),
-                          }}
-                          className="border"
-                        >
-                          {t.category}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className={cn(
-                        "text-right font-medium",
+      {hasActiveFilters && (
+        <p className="text-xs text-muted-foreground">
+          Showing {filteredTransactions.length} of {transactions.length} transactions
+        </p>
+      )}
+
+      {/* ── Mobile card list ── */}
+      {loading ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="size-8 animate-spin text-primary" />
+        </div>
+      ) : (
+        <>
+          {/* Mobile: card per transaction */}
+          <div className="flex flex-col divide-y divide-border rounded-xl border bg-card md:hidden">
+            {filteredTransactions.length === 0 ? (
+              <p className="px-6 py-12 text-center text-sm text-muted-foreground">
+                No transactions found.
+              </p>
+            ) : (
+              filteredTransactions.map((t) => (
+                <div key={t.id} className="flex items-center gap-3 px-4 py-3">
+                  <div
+                    className={cn(
+                      "flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white",
+                      t.type === "income" ? "bg-emerald-500" : "bg-rose-500"
+                    )}
+                  >
+                    {t.type === "income" ? "+" : "−"}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{t.description}</p>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                      <Badge
+                        variant="secondary"
+                        style={{
+                          backgroundColor: `${getCategoryColor(t.category)}18`,
+                          color: getCategoryColor(t.category),
+                        }}
+                        className="h-5 rounded-full px-2 text-[10px] font-medium"
+                      >
+                        {t.category}
+                      </Badge>
+                      <span className="text-[11px] text-muted-foreground">{formatDate(t.date)}</span>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <span
+                      className={cn(
+                        "text-sm font-semibold tabular-nums",
                         t.type === "income"
                           ? "text-emerald-600 dark:text-emerald-400"
                           : "text-destructive"
-                      )}>
-                        {t.type === "income" ? "+" : "–"}{formatCurrency(t.amount)}
+                      )}
+                    >
+                      {t.type === "income" ? "+" : "−"}{formatCurrency(t.amount)}
+                    </span>
+                    <button
+                      onClick={() => handleDelete(t.id)}
+                      className="text-muted-foreground/50 transition-colors hover:text-destructive active:scale-95"
+                      aria-label="Delete"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop: full table */}
+          <Card className="hidden md:block">
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredTransactions.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                        No transactions found.
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
+                    </TableRow>
+                  ) : (
+                    filteredTransactions.map((t) => (
+                      <TableRow key={t.id}>
+                        <TableCell className="text-muted-foreground">{formatDate(t.date)}</TableCell>
+                        <TableCell className="font-medium">{t.description}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="secondary"
+                            style={{
+                              backgroundColor: `${getCategoryColor(t.category)}20`,
+                              color:           getCategoryColor(t.category),
+                              borderColor:     getCategoryColor(t.category),
+                            }}
+                            className="border"
+                          >
+                            {t.category}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className={cn(
+                          "text-right font-medium tabular-nums",
+                          t.type === "income"
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : "text-destructive"
+                        )}>
+                          {t.type === "income" ? "+" : "−"}{formatCurrency(t.amount)}
+                        </TableCell>
+                        <TableCell className="text-right">
                           <Button
                             variant="ghost"
                             size="icon"
@@ -292,23 +331,26 @@ function TransactionsContent() {
                             onClick={() => handleDelete(t.id)}
                           >
                             <Trash2 className="size-4" />
-                            <span className="sr-only">Delete</span>
                           </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {/* ── Mobile FAB (floating add button) ── */}
+      <div className="fixed bottom-6 right-6 z-50 sm:hidden" style={{ bottom: "max(1.5rem, env(safe-area-inset-bottom, 1.5rem))" }}>
+        <AddTransactionModal onAdd={handleAddTransaction} />
+      </div>
     </div>
   )
 }
 
-// ── Page export ───────────────────────────────────────────
 export default function TransactionsPage() {
   return (
     <AuthGuard>

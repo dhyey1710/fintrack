@@ -118,8 +118,62 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    /* Remove the blue/gray tap highlight on iOS/Android */
+    -webkit-tap-highlight-color: transparent;
+    /* Ensure touch events work correctly on interactive elements */
+    touch-action: manipulation;
   }
+
+  html {
+    /* Smooth scrolling everywhere */
+    scroll-behavior: smooth;
+    /* Prevent iOS font-size inflation in landscape */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
   body {
     @apply bg-background text-foreground;
+    /* Prevent horizontal scroll from overflowing content */
+    overflow-x: hidden;
+    /* Respect device safe areas (notch, home indicator) */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
+
+  /* Thin, themed scrollbars on desktop */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-border;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/40;
+  }
+
+  /* Inputs — prevent iOS zoom on focus (font-size < 16px) */
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+
+  /* Anchor reset for touch */
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer utilities {
+  /* Safe-area bottom padding for iPhone home indicator */
+  .pb-safe            { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .pt-safe            { padding-top:    env(safe-area-inset-top,    0px); }
+  .px-safe            { padding-left:   env(safe-area-inset-left,   0px);
+                        padding-right:  env(safe-area-inset-right,  0px); }
+  .no-select          { -webkit-user-select: none; user-select: none; }
 }
