@@ -25,7 +25,7 @@ interface TrendChartProps {
 const chartConfig = {
   amount: {
     label: "Spending",
-    color: "hsl(var(--primary))",
+    color: "var(--color-primary)",
   },
 } satisfies ChartConfig
 
@@ -51,12 +51,12 @@ export function TrendChart({ data }: TrendChartProps) {
               <linearGradient id="fillAmount" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="hsl(var(--primary))"
+                  stopColor="var(--color-primary)"
                   stopOpacity={0.3}
                 />
                 <stop
                   offset="95%"
-                  stopColor="hsl(var(--primary))"
+                  stopColor="var(--color-primary)"
                   stopOpacity={0}
                 />
               </linearGradient>
@@ -95,7 +95,7 @@ export function TrendChart({ data }: TrendChartProps) {
             <Area
               type="monotone"
               dataKey="amount"
-              stroke="hsl(var(--primary))"
+              stroke="var(--color-primary)"
               strokeWidth={2}
               fill="url(#fillAmount)"
             />

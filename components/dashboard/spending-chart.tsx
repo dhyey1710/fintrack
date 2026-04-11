@@ -67,7 +67,7 @@ export function SpendingChart({ data }: SpendingChartProps) {
               nameKey="name"
               innerRadius={60}
               strokeWidth={2}
-              stroke="hsl(var(--background))"
+              stroke="var(--color-background)"
             >
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fill} />
