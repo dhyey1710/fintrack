@@ -2,33 +2,28 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // ── Transactions ────────────────────────────────────
-    // Each transaction document has a "userId" field.
-    // A user can only read/write/delete their OWN documents.
+    
+    // Helper functions for readability
+    function isAuthenticated() { return request.auth != null; }
+    function isOwner(uid) { return request.auth.uid == uid; }
+    
     match /transactions/{transactionId} {
-
-      // Allow read if the document's userId matches the signed-in user
-      allow read: if request.auth != null
-                  && resource.data.userId == request.auth.uid;
-
-      // Allow create if:
-      //  1. User is signed in
-      //  2. The new document sets userId to the authenticated user's UID
-      //  3. Amount must be a positive number
-      allow create: if request.auth != null
-                    && request.resource.data.userId == request.auth.uid
+      // READ / DELETE: Must be logged in, and can only read/delete their own docs.
+      allow read, delete: if isAuthenticated() && isOwner(resource.data.userId);
+      
+      // CREATE: Must assign to self, and validate basic schema to prevent huge data dumps.
+      allow create: if isAuthenticated() 
+                    && isOwner(request.resource.data.userId)
+                    && request.resource.data.keys().hasAll(['userId', 'amount', 'type', 'category', 'date'])
                     && request.resource.data.amount is number
-                    && request.resource.data.amount > 0;
-
-      // Allow delete if the document belongs to the signed-in user
-      allow delete: if request.auth != null
-                    && resource.data.userId == request.auth.uid;
-
-      // Allow update (edit) if document belongs to the signed-in user
-      allow update: if request.auth != null
-                    && resource.data.userId == request.auth.uid
-                    && request.resource.data.userId == request.auth.uid;
+                    && request.resource.data.amount > 0
+                    && (!request.resource.data.keys().hasAny(['description']) || (request.resource.data.description is string && request.resource.data.description.size() < 500));
+                    
+      // UPDATE: Must own it, AND cannot transfer ownership to someone else
+      allow update: if isAuthenticated() 
+                    && isOwner(resource.data.userId)
+                    && isOwner(request.resource.data.userId)
+                    && (!request.resource.data.keys().hasAny(['description']) || (request.resource.data.description is string && request.resource.data.description.size() < 500));
     }
 
     // Deny all other access by default

@@ -1,11 +1,32 @@
 import { NextResponse } from "next/server"
 import { GoogleGenAI } from "@google/genai"
 import { categories } from "@/lib/data"
+import { customInitApp, getAuth } from "@/lib/firebase-admin"
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
 
 export async function POST(request: Request) {
   try {
+    // 1. Verify Authorization Token
+    const authHeader = request.headers.get("Authorization")
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    customInitApp()
+    const token = authHeader.split("Bearer ")[1]
+    let decodedToken
+    try {
+      decodedToken = await getAuth().verifyIdToken(token)
+    } catch {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 })
+    }
+
+    if (!decodedToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // 2. Parse input
     const { input, currentDate } = await request.json()
 
     if (!input || typeof input !== "string") {

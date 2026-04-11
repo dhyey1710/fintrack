@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { AddTransactionModal } from "@/components/add-transaction-modal"
 import { categories, type Transaction } from "@/lib/data"
 import { cn } from "@/lib/utils"
+import { auth } from "@/lib/firebase"
 
 interface SmartQuickAddProps {
   onAdd: (transaction: Omit<Transaction, "id">) => Promise<void>
@@ -31,9 +32,18 @@ export function SmartQuickAdd({ onAdd }: SmartQuickAddProps) {
     setParsedData(null)
 
     try {
+      const user = auth.currentUser
+      if (!user) {
+        throw new Error("Must be logged in to use smart quick add.")
+      }
+      const token = await user.getIdToken()
+
       const res = await fetch("/api/parse-transaction", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ 
           input,
           currentDate: new Date().toISOString().split("T")[0]
