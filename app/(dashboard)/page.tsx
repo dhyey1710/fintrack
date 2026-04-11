@@ -59,19 +59,21 @@ function DashboardContent() {
   // ── handlers ──────────────────────────────────────────
   const handleAddTransaction = async (newTransaction: Omit<import("@/lib/data").Transaction, "id">) => {
     try {
-      // TODO: writes to Firestore via useTransactions hook
+      // Writes to Firestore via useTransactions hook
       await addTransaction(newTransaction)
     } catch (err) {
       console.error("Dashboard – add transaction failed:", err)
+      throw err // Rethrow to let the UI component (Modal/Quick Add) catch and display it
     }
   }
 
   const handleDeleteTransaction = async (id: string) => {
     try {
-      // TODO: deletes document from Firestore
+      // Deletes document from Firestore
       await deleteTransaction(id)
     } catch (err) {
       console.error("Dashboard – delete transaction failed:", err)
+      throw err
     }
   }
 
