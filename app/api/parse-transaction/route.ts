@@ -3,10 +3,11 @@ import { GoogleGenAI } from "@google/genai"
 import { categories } from "@/lib/data"
 import { customInitApp, getAuth } from "@/lib/firebase-admin"
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
-
 export async function POST(request: Request) {
   try {
+    // Initialize AI at request time to prevent Vercel build-time warnings
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "missing_key" })
+
     // 1. Verify Authorization Token
     const authHeader = request.headers.get("Authorization")
     if (!authHeader?.startsWith("Bearer ")) {
