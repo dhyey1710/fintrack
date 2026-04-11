@@ -14,3 +14,10 @@ next.user-config.*
 node_modules
 .next/
 .DS_Store
+out/
+
+# Dev scripts
+simulate_git.ps1
+
+# Vercel
+.vercel
