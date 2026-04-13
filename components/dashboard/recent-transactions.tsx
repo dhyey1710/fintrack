@@ -63,22 +63,33 @@ export function RecentTransactions({
         <CardTitle>Recent Transactions</CardTitle>
         <CardDescription>Your latest financial activities</CardDescription>
       </CardHeader>
-      <CardContent className="p-0 sm:p-6 sm:pt-0">
+      <CardContent className="p-0 sm:p-6 sm:pt-0 bg-transparent sm:bg-card">
 
         {/* ── Mobile card list (hidden on md+) ── */}
-        <div className="flex flex-col divide-y divide-border md:hidden">
+        <div className="flex flex-col gap-3 px-4 py-4 md:hidden">
           {recent.length === 0 ? (
             <p className="px-6 py-10 text-center text-sm text-muted-foreground">
               No transactions yet. Add your first one!
             </p>
           ) : (
             recent.map((t) => (
-              <div key={t.id} className="flex items-center gap-3 px-6 py-3">
+              <div 
+                key={t.id} 
+                className="group relative overflow-hidden flex items-center gap-4 rounded-2xl bg-card/40 p-4 shadow-sm backdrop-blur-md border border-white/10 dark:border-white/5 transition-all active:scale-[0.98]"
+              >
+                {/* Subtle gradient background based on type */}
+                <div 
+                  className={cn(
+                    "absolute inset-0 opacity-[0.03] dark:opacity-[0.05]",
+                    t.type === "income" ? "bg-emerald-500" : "bg-rose-500"
+                  )} 
+                />
+                
                 {/* Coloured type indicator dot */}
                 <div
                   className={cn(
-                    "flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white",
-                    t.type === "income" ? "bg-emerald-500" : "bg-rose-500"
+                    "relative flex size-12 shrink-0 items-center justify-center rounded-2xl text-lg font-bold text-white shadow-inner",
+                    t.type === "income" ? "bg-gradient-to-br from-emerald-400 to-emerald-600" : "bg-gradient-to-br from-rose-400 to-rose-600"
                   )}
                 >
                   {t.type === "income" ? "+" : "−"}
@@ -108,17 +119,17 @@ export function RecentTransactions({
                 <div className="flex shrink-0 flex-col items-end gap-1">
                   <span
                     className={cn(
-                      "text-sm font-semibold tabular-nums",
+                      "relative text-base font-bold tabular-nums tracking-tight",
                       t.type === "income"
                         ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-destructive"
+                        : "text-rose-600 dark:text-rose-400"
                     )}
                   >
                     {t.type === "income" ? "+" : "−"}{formatCurrency(t.amount)}
                   </span>
                   <button
                     onClick={() => onDelete?.(t.id)}
-                    className="text-muted-foreground/50 transition-colors hover:text-destructive active:scale-95"
+                    className="relative text-muted-foreground/40 transition-colors hover:text-destructive active:scale-90 p-2 -mr-2"
                     aria-label="Delete transaction"
                   >
                     <Trash2 className="size-3.5" />

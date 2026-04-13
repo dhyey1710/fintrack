@@ -23,10 +23,10 @@ import { useAuth }                from "@/contexts/AuthContext"
 import { useTransactions }        from "@/hooks/useTransactions"
 import {
   calculateSummary,
-  generateDailySpending,
+  getDailySpending,
   getSpendingByCategory,
 } from "@/lib/data"
-import { Loader2 } from "lucide-react"
+import { Loader2, Plus } from "lucide-react"
 
 // ── Dashboard content (rendered only when authenticated) ──
 function DashboardContent() {
@@ -35,9 +35,7 @@ function DashboardContent() {
 
   const summary            = calculateSummary(transactions)
   const spendingByCategory = getSpendingByCategory(transactions)
-  // Daily spending still uses random data for the trend chart
-  // TODO: compute this from real Firestore data if you like
-  const dailySpending      = generateDailySpending()
+  const dailySpending      = getDailySpending(transactions)
 
   const getGreeting = () => {
     const hour = new Date().getHours()
@@ -78,7 +76,7 @@ function DashboardContent() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
+    <div className="flex flex-col gap-6 p-4 md:p-6 pb-24 md:pb-6 relative">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -131,6 +129,19 @@ function DashboardContent() {
           />
         </>
       )}
+
+      {/* Premium Mobile FAB (hidden on desktop) */}
+      <div className="fixed bottom-6 right-6 z-50 block sm:hidden">
+        <AddTransactionModal 
+          onAdd={handleAddTransaction}
+          trigger={
+            <button className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/90 text-primary-foreground shadow-[0_8px_30px_rgb(0,0,0,0.12)] shadow-primary/40 backdrop-blur-xl transition-all active:scale-90 border border-white/20 dark:border-white/10 relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <Plus className="size-6 relative z-10" />
+            </button>
+          }
+        />
+      </div>
     </div>
   )
 }

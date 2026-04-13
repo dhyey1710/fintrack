@@ -88,8 +88,10 @@ export function SmartQuickAdd({ onAdd }: SmartQuickAddProps) {
     categories.find((c) => c.name === name)?.color ?? "#6b7280"
 
   return (
-    <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-transparent relative">
-      <CardContent className="p-4 sm:p-6 flex flex-col gap-4">
+    <div className="relative group/ai">
+      <div className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 blur group-hover/ai:opacity-40 transition duration-500" />
+      <Card className="relative overflow-hidden border-white/10 bg-card/95 backdrop-blur-xl shadow-xl">
+        <CardContent className="p-4 sm:p-6 flex flex-col gap-4">
         
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           <div className="relative flex-1 w-full">
@@ -115,7 +117,7 @@ export function SmartQuickAdd({ onAdd }: SmartQuickAddProps) {
           <Button 
             onClick={handleParse} 
             disabled={loading || !input.trim() || !!parsedData}
-            className="w-full sm:w-auto shrink-0 gap-2 font-medium bg-indigo-600 hover:bg-indigo-700 text-white"
+            className="w-full sm:w-auto shrink-0 gap-2 font-medium bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-md border-0"
           >
             {loading && !parsedData ? (
               <Loader2 className="size-4 animate-spin" />
@@ -198,8 +200,9 @@ export function SmartQuickAdd({ onAdd }: SmartQuickAddProps) {
         open={modalOpen} 
         onOpenChange={setModalOpen}
         initialData={parsedData || undefined}
-        trigger={<div className="hidden"></div>} /* hidden trigger to bypass native internal button */
+        trigger={<div className="hidden"></div>}
       />
-    </Card>
+      </Card>
+    </div>
   )
 }

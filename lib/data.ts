@@ -125,18 +125,39 @@ export const sampleTransactions: Transaction[] = [
   },
 ]
 
-// Generate spending data for the last 30 days
-export function generateDailySpending() {
+// Calculate daily spending for the last 30 days based on transactions
+export function getDailySpending(transactions: Transaction[]) {
   const data = []
   const today = new Date()
   
+  // Initialize map with last 30 days
+  const dailyMap = new Map<string, number>()
   for (let i = 29; i >= 0; i--) {
     const date = new Date(today)
     date.setDate(date.getDate() - i)
-    const spending = Math.floor(Math.random() * 150) + 20
+    const dateString = date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    dailyMap.set(dateString, 0)
+  }
+
+  // Aggregate expenses
+  transactions
+    .filter((t) => t.type === "expense")
+    .forEach((t) => {
+      // Create a stable local date by appending noon time, preventing timezone shifts
+      const tDate = new Date(t.date + "T12:00:00")
+      if (isNaN(tDate.getTime())) return
+
+      const dateString = tDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+      if (dailyMap.has(dateString)) {
+        dailyMap.set(dateString, (dailyMap.get(dateString) || 0) + t.amount)
+      }
+    })
+
+  // Convert map to array
+  for (const [date, amount] of Array.from(dailyMap.entries())) {
     data.push({
-      date: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      amount: spending,
+      date,
+      amount: Math.round(amount * 100) / 100,
     })
   }
   
