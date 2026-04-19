@@ -3,6 +3,11 @@ import { GoogleGenAI } from "@google/genai"
 import { categories } from "@/lib/data"
 import { customInitApp, getAuth } from "@/lib/firebase-admin"
 
+// Simple in-memory rate limiter (5 requests / 1 minute)
+const rateLimitMap = new Map<string, { count: number, resetTime: number }>()
+const RATE_LIMIT_WINDOW = 60 * 1000 // 1 minute
+const MAX_REQUESTS = 5
+
 export async function POST(request: Request) {
   try {
     // Initialize AI at request time to prevent Vercel build-time warnings
@@ -23,8 +28,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 })
     }
 
-    if (!decodedToken) {
+    if (!decodedToken || !decodedToken.uid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // 1.5 Rate Limiting
+    const now = Date.now()
+    const uid = decodedToken.uid
+    const userLimit = rateLimitMap.get(uid)
+
+    if (!userLimit || now > userLimit.resetTime) {
+      // First request or window reset
+      rateLimitMap.set(uid, { count: 1, resetTime: now + RATE_LIMIT_WINDOW })
+    } else {
+      if (userLimit.count >= MAX_REQUESTS) {
+        return NextResponse.json(
+          { error: "Too many requests. Please wait a minute before trying again." },
+          { status: 429 }
+        )
+      }
+      userLimit.count++
     }
 
     // 2. Parse input

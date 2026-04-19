@@ -177,3 +177,9 @@
                         padding-right:  env(safe-area-inset-right,  0px); }
   .no-select          { -webkit-user-select: none; user-select: none; }
 }
+
+/* Shimmer animation for AI parsing progress bar */
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}

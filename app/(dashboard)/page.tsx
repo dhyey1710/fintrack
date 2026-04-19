@@ -15,6 +15,7 @@
 import { AuthGuard }              from "@/components/auth-guard"
 import { AddTransactionModal }    from "@/components/add-transaction-modal"
 import { SmartQuickAdd }          from "@/components/dashboard/smart-quick-add"
+import { BulkUploadModal }        from "@/components/dashboard/bulk-upload-modal"
 import { RecentTransactions }     from "@/components/dashboard/recent-transactions"
 import { SpendingChart }          from "@/components/dashboard/spending-chart"
 import { SummaryCards }           from "@/components/dashboard/summary-cards"
@@ -93,6 +94,9 @@ function DashboardContent() {
 
       {/* AI Smart Quick Add */}
       <SmartQuickAdd onAdd={handleAddTransaction} />
+
+      {/* AI Bulk Import */}
+      <BulkUploadModal variant="card" />
 
       {/* Error banner */}
       {error && (

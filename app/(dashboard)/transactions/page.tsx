@@ -15,6 +15,7 @@ import { format }            from "date-fns"
 import { CalendarIcon, Loader2, Search, Trash2, X } from "lucide-react"
 import { AuthGuard }            from "@/components/auth-guard"
 import { AddTransactionModal }  from "@/components/add-transaction-modal"
+import { BulkUploadModal }      from "@/components/dashboard/bulk-upload-modal"
 import { Badge }                from "@/components/ui/badge"
 import { Button }               from "@/components/ui/button"
 import { Calendar }             from "@/components/ui/calendar"
@@ -118,11 +119,15 @@ function TransactionsContent() {
             {loading ? "Loading…" : `${transactions.length} total`}
           </p>
         </div>
-        {/* Button hidden on mobile (replaced by FAB below) */}
-        <div className="hidden sm:block">
+        {/* Buttons hidden on mobile (replaced by hero card + FAB below) */}
+        <div className="hidden sm:flex sm:items-center sm:gap-2">
+          <BulkUploadModal />
           <AddTransactionModal onAdd={handleAddTransaction} />
         </div>
       </div>
+
+      {/* ── Smart Import Hero Card (always visible) ── */}
+      <BulkUploadModal variant="card" />
 
       {error && (
         <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
